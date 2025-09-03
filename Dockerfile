@@ -1,5 +1,5 @@
 # 使用官方Python轻量级镜像
-FROM docker.1ms.run/library/python:3.9-slim
+FROM docker.1ms.run/library/python:3.10-slim
 
 # 设置工作目录
 
@@ -15,6 +15,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*  # 清理缓存以减小镜像大小
 # 设置时区环境变量
 ENV TZ=Asia/Shanghai
+ENV PYTHONPATH=/usr/local:$PYTHONPATH
 # 创建时区链接
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 

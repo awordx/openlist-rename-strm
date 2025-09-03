@@ -45,7 +45,11 @@ class AUTO_refreash():
 
         return names_with_modified_date
     def send_iyuu_message(self, title,content=None):
+
         token = self.iyuu_token # 替换为你的 IYUU 令牌
+        if not token or token == 'None':
+            logger.warning("⚠️ IYUU token 为空，消息未发送")
+            return
 
         #############格言部分
         # result = self.fetch_data()

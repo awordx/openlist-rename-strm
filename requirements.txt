@@ -1,2 +1,6 @@
 requests
 Flask
+scikit-learn
+apscheduler
+pillow
+aiohttp

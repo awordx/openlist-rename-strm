@@ -23,9 +23,6 @@ services:
     volumes:
       - ./data:/usr/local/data                     #存放电影数据以及日志文件
       - ./config:/usr/local/config                 #存放配置文件
-      - ./alist_strm:/alist_strm                   #存放生成的strm文件
-    environment:
-      - restart_update=False
-#      - use_thire_rename=True
+      - ./alist_strm:/alist_strm                   #右边alist_strm是容器内存放生成的strm文件
     restart: always
 

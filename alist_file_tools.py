@@ -3,13 +3,14 @@ import json
 import os
 import configparser
 import urllib.parse
-from utils.log_utils import logger
+from utils.log_utils import logger, config_path
 import codecs
 import shutil
 import time
 import argparse
 import hashlib
 import sys
+
 class ALIST():
     def __init__(self,config):
         self.alist_url = config['alistconfig']['alist_url']
@@ -636,7 +637,7 @@ def read_config(config_path):
         config.read_file(f)
     return config
 def main():
-    config = read_config('config/config.ini')
+    config = read_config(config_path)
     alist = ALIST(config)
     parser = argparse.ArgumentParser()
     parser.add_argument('--path', default=None, help='to_named_path的路径')

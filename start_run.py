@@ -6,7 +6,8 @@ from utils.log_utils import logger
 import sys
 from utils.log_utils import config_path
 import os
-
+from utils.config_verify import validate_config_from_file
+import configparser
 if __name__ == '__main__':
     art = r'''          _   _         _                                                                            _                      
    __ _  | | (_)  ___  | |_           _ __    ___   _ __     __ _   _ __ ___     ___           ___  | |_   _ __   _ __ ___  
@@ -15,10 +16,14 @@ if __name__ == '__main__':
   \__,_| |_| |_| |___/  \__|         |_|     \___| |_| |_|  \__,_| |_| |_| |_|  \___|         |___/  \__| |_|    |_| |_| |_|
                                                                                                                             '''
     print(art)
+    try:
+        validate_config_from_file(config_path)
+    except (ValueError, FileNotFoundError, configparser.Error) as e:
+        raise ValueError(f"Configuration check failed: {e}")
     config = read_config(config_path)  # windows配置文件
     restart_update = eval(config['user_config']['restart_update'])
     time.sleep(1)
-    logger.info(f'项目地址：https://github.com/awordx/alist-rename-strm')
+    logger.info(f'项目地址：https://github.com/awordx/openlist-rename-strm')
     # restart_update = os.getenv('restart_update', True)
     # restart_update = restart_update.lower() in ['true', '1', 't', 'y', 'yes']
     # restart_update = True

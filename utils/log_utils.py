@@ -10,6 +10,7 @@
 #             print(f'| WARNING| {s}')
 from datetime import datetime
 config_path = 'config/config.ini'
+# config_path = r'K:\git_code\openlist-rename-strm\config\config_test.ini'
 try:
     from loguru import logger
 except ImportError:
