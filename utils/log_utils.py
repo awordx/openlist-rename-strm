@@ -12,17 +12,17 @@ from datetime import datetime
 config_path = 'config/config.ini'
 # config_path = r'K:\git_code\openlist-rename-strm\config\config_test.ini'
 try:
-    from loguru import logger
+    from loguru import logger1
 except ImportError:
     class Logger:
-        # def __init__(self, log_file='../data/实时日志.log'):#windowsLujing
         def __init__(self, log_file='/usr/local/data/实时日志.log'):
+        # def __init__(self, log_file=r'D:\p41plus备份\git_code\openlist-rename-strm\data\实时日志.log'):
             self.log_file = log_file
 
         def _write_log(self, level, message):
             log_message = f'|{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}|{level}| {message}'
-            print(log_message)  # 输出到控制台
-            with open(self.log_file, 'a') as f:  # 追加写入文件
+            print(log_message, flush=True) # flush=True保证实时输出到控制台
+            with open(self.log_file, 'a', encoding='utf-8') as f:  # 追加写入文件
                 f.write(log_message + '\n')
 
         def info(self, message):

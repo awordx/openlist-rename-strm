@@ -4,3 +4,4 @@ scikit-learn
 apscheduler
 pillow
 aiohttp
+flask_session

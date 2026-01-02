@@ -7,6 +7,7 @@ from collections import defaultdict
 from utils.log_utils import logger
 from alist_file_tools import ALIST,read_config
 import argparse
+import configparser
 # from folderwatcher import FolderWatcher
 from utils.folderwatcher_emby import AUTO_refreash
 # from utils.remove_garbage_files import remove_garbage_files
@@ -20,9 +21,11 @@ from utils.chatapi import ai_rename
 from utils.chatapi import ai_rename_anime_movie
 from utils.file_auto_copy import auto_copy
 from utils.log_utils import config_path
+from utils.config_verify import validate_config_from_file
 class AlistRename():
     def __init__(self, config ,mapping_file='name_mapping.json'):
         # self.folder_path = folder_path
+        self.file_size_dict = {}
         self.config = config
         self.mapping_file = mapping_file
         self.alist = ALIST(config)
@@ -64,6 +67,7 @@ class AlistRename():
         self.source_directory = config['copy_config']['source_directory'].split(',')
         self.target_directory = config['copy_config']['target_directory'].split(',')
         self.auto_copy = eval(config['copy_config']['auto_copy'])
+        self.use_emby_refresh = eval(config['emby_config']['use_emby_refresh'])
         # self.use_thire_rename = os.getenv('use_thire_rename', False)
         # self.use_thire_rename = self.use_thire_rename.lower() in ['true', '1', 't', 'y', 'yes']
         # self.use_thire_rename = False
@@ -685,13 +689,55 @@ class AlistRename():
     def folder_watch(self):
         new_folders_dict = self.folder_watcher.monitor_folder()
         return new_folders_dict
+    def get_file_size(self,folder_path):
+        def add_to_limited_dict(d, key, value, max_len=5):
+            """
+            向字典 d 添加 key:value，如果超过 max_len 条目，从头开始删除最早添加的
+            """
+            d[key] = value
+            while len(d) > max_len:
+                # popitem(last=False) 弹出最早插入的元素（需要 OrderedDict）
+                d.pop(next(iter(d)))  # 删除字典中第一个元素
+
+        if os.path.exists('data/temp.json') and os.path.getsize('data/temp.json') > 0:
+            with open('data/temp.json', 'r', encoding='utf-8') as f:
+                try:
+                    temp_data = json.load(f)  # 直接读取整个 JSON 为字典
+                except json.JSONDecodeError:
+                    temp_data = {}  # 文件有内容但不是合法 JSON，也返回空字典
+        else:
+            temp_data = {}
+        movie_path = folder_path['new_movie_folders_with_path']
+        series_path = folder_path['new_anime_folders_with_path']
+        movie_names = {}
+        series_names = {}
+        for path in movie_path:
+            folder_name = os.path.basename(path.rstrip("/\\"))
+            _,allfiles = self.alist.get_folder_files(path,refresh=False,need_content=True)
+            contents = allfiles.get('data', {}).get('content', [])
+            if contents:
+                # 找到 size 最大的那个 dict
+                max_file = max(contents, key=lambda x: x.get('size', 0))
+                max_size = round(max_file['size'] / (1024 * 1024 * 1024), 2)
+                add_to_limited_dict(temp_data, folder_name, max_size)
+            else:
+                print("没有内容")
+                movie_names[folder_name] = '-'
+
+        for path in series_path:
+            folder_name = os.path.basename(path.rstrip("/\\"))
+            # series_names[folder_name] = '-'
+            add_to_limited_dict(temp_data, folder_name, '-')
+        with open('data/temp.json', 'w', encoding='utf-8') as f:
+            json.dump(temp_data, f, ensure_ascii=False, indent=4)
     def refresh_emby(self):
         if new_folders_dict['new_anime_files']:
             # logger.info(f'4.1发现新动漫🎉: {new_folders_dict["new_anime_files"]}')
             logger.info("✨ 开始生成剧集strm & 下载字幕 ✨")
             self.alist.start_to_create_strm(to_named_paths=new_folders_dict['new_anime_folders_with_path'],
                                             local_strm_root_path=self.local_strm_root_path)
-            self.folder_watcher.emby_refresh(self.library_anime_new, new_folders_dict['new_anime_files'],self.emby_refresh_status['剧集添加'])
+            if alist_rename.use_emby_refresh:
+                self.folder_watcher.emby_refresh(self.library_anime_new, new_folders_dict['new_anime_files'],self.emby_refresh_status['剧集添加'])
             #潜在bug，不会自动刷新emby剧集目录
         else:
             pass
@@ -703,7 +749,7 @@ class AlistRename():
                 if not self.alist.local_is_a_file(new_movie_path):
                     # self.alist.movie_rename(new_movie_path)
 
-                    if alist_rename.use_ai_title:
+                    if alist_rename.useai and alist_rename.use_ai_title:
                         try:
                             new_path, confidence = ai_rename_anime_movie(new_movie_path)
                             if confidence >= alist_rename.ai_confidence:
@@ -738,7 +784,8 @@ class AlistRename():
             logger.info("✨ 开始生成电影strm & 下载字幕 ✨")
             self.alist.start_to_create_strm(to_named_paths=new_folders_dict['new_movie_folders_with_path'],
                                             local_strm_root_path=self.local_strm_root_path)
-            self.folder_watcher.emby_refresh(self.library_movie_new, new_folders_dict['new_movie_files'],self.emby_refresh_status['电影添加'])
+            if alist_rename.use_emby_refresh:
+                self.folder_watcher.emby_refresh(self.library_movie_new, new_folders_dict['new_movie_files'],self.emby_refresh_status['电影添加'])
         else:
             pass
             # logger.info("4.2没有发现新电影🎞")
@@ -759,7 +806,8 @@ class AlistRename():
             #从data的txt文件中删除已经删除的动漫
             self.anime_files_deleted(self.last_file_path,new_folders_dict["deleted_anime_folders_with_path"])
             self.alist.delete_local_strm_folders(new_folders_dict['deleted_anime_folders_with_path'],self.local_strm_root_path)
-            self.folder_watcher.emby_refresh(self.library_anime_new, new_folders_dict['deleted_anime_files'],self.emby_refresh_status['剧集删除'])
+            if alist_rename.use_emby_refresh:
+                self.folder_watcher.emby_refresh(self.library_anime_new, new_folders_dict['deleted_anime_files'],self.emby_refresh_status['剧集删除'])
         else:
             pass
             # logger.info("4.4没有动漫删除🎬")
@@ -780,7 +828,8 @@ class AlistRename():
             #删除已经删除的电影，从txt中删除
             self.movie_files_deleted(alist_rename.last_file_path,new_folders_dict["deleted_movie_folders_with_path"])
             self.alist.delete_local_strm_folders(new_folders_dict['deleted_movie_folders_with_path'],self.local_strm_root_path)
-            self.folder_watcher.emby_refresh(self.library_movie_new, new_folders_dict['deleted_movie_files'],self.emby_refresh_status['电影删除'])
+            if alist_rename.use_emby_refresh:
+                self.folder_watcher.emby_refresh(self.library_movie_new, new_folders_dict['deleted_movie_files'],self.emby_refresh_status['电影删除'])
         else:
             pass
             # logger.info("4.6没有电影删除🎬")
@@ -925,7 +974,10 @@ def arrangement_and_rename_movies(alist_rename,moviepath):
 if __name__ == '__main__':
     # config = read_config('/volume1/docker/alist_rename/config.ini')#nas配置文件
     config = read_config(config_path)#windows配置文件
-
+    try:
+        validate_config_from_file(config_path)
+    except:
+        sys.exit(1)
     alist_rename = AlistRename(config)
     # 创建解析器
     parser = argparse.ArgumentParser(description='选择一个库类型。')
@@ -942,6 +994,7 @@ if __name__ == '__main__':
     # 监测新文件夹
     if not alist_rename.debugmodel and args.tvpath is None:#仅在正常模式下监控文件，如果tvpath存在则不监控文件
         new_folders_dict = alist_rename.folder_watch()
+        alist_rename.get_file_size(new_folders_dict)
         alist_rename.is_newfile_add(new_folders_dict)
         new_anime_folders_with_path = new_folders_dict['new_anime_folders_with_path']
         # new_series_folders_with_path = new_folders_dict['new_series_folders_with_path']
@@ -972,8 +1025,7 @@ if __name__ == '__main__':
                     # logger.info(f'✨检测到新文件:[{os.path.basename(new_folder)}]，开始重命名')
                     ###检测文件夹是否含有not_check,以及整理文件夹
                     # not_check = folder_arrangement_t(alist_rename,new_folder)
-
-                    if alist_rename.use_ai_title:
+                    if alist_rename.useai and alist_rename.use_ai_title:
                         try:
                             new_path, confidence = ai_rename_anime_movie(new_folder)
                             if confidence >= alist_rename.ai_confidence:

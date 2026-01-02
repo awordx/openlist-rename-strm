@@ -16,10 +16,10 @@ if __name__ == '__main__':
   \__,_| |_| |_| |___/  \__|         |_|     \___| |_| |_|  \__,_| |_| |_| |_|  \___|         |___/  \__| |_|    |_| |_| |_|
                                                                                                                             '''
     print(art)
-    try:
-        validate_config_from_file(config_path)
-    except (ValueError, FileNotFoundError, configparser.Error) as e:
-        raise ValueError(f"Configuration check failed: {e}")
+    # try:
+    #     validate_config_from_file(config_path)
+    # except (ValueError, FileNotFoundError, configparser.Error) as e:
+    #     raise ValueError(f"Configuration check failed: {e}")
     config = read_config(config_path)  # windows配置文件
     restart_update = eval(config['user_config']['restart_update'])
     time.sleep(1)
