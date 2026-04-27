@@ -1019,6 +1019,7 @@ if __name__ == '__main__':
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     try:
+        pending_not_check_indexes = []
         for index, folders_with_path in enumerate(folders_with_paths) :
             if folders_with_path:
                 for index2 ,new_folder in enumerate(folders_with_path):
@@ -1061,7 +1062,7 @@ if __name__ == '__main__':
                         not_check = folder_arrangement_t(alist_rename, new_folder)
                     if not_check:
                         logger.info(f'⚠️not_check:{new_folder}，不进行命名以及生成strm')
-                        folders_with_path.remove(new_folder)
+                        pending_not_check_indexes.append(index2)
                         alist_rename.series_files_update(last_data_path=alist_rename.last_file_path, parent_folderpath=new_folder)
                         continue
                     ###检测文件夹是否含有not_check,以及整理文件夹
@@ -1086,6 +1087,12 @@ if __name__ == '__main__':
                     logger.info('✅ 文件重命名完成 ✅')
             else:
                 pass
+        if pending_not_check_indexes:
+            for remove_index in sorted(set(pending_not_check_indexes), reverse=True):
+                if remove_index < len(new_folders_dict['new_anime_files']):
+                    del new_folders_dict['new_anime_files'][remove_index]
+                if remove_index < len(new_folders_dict['new_anime_folders_with_path']):
+                    del new_folders_dict['new_anime_folders_with_path'][remove_index]
         if args.tvpath is not None:
             alist_rename.alist.start_to_create_strm(args.tvpath, alist_rename.local_strm_root_path)
         else:

@@ -1,2 +1,5 @@
 config/config_test.ini
 data/dict_files.json
+data/temp.json
+data/alist_rename_log.txt
+logs

@@ -15,7 +15,7 @@ def ai_rename(series_names_list):
     series_names_list = str(series_names_list)
     conn = http.client.HTTPSConnection("api.chatanywhere.tech")
     payload = json.dumps({
-       "model": "gpt-4o-mini",
+       "model": "gpt-5-mini",
        "messages": [
           {
              "role": "system",
@@ -65,7 +65,7 @@ def ai_rename_anime_movie(series_name):
     series_name = str(series_name)
     conn = http.client.HTTPSConnection("api.chatanywhere.tech")
     payload = json.dumps({
-       "model": "gpt-4o-mini",
+       "model": "gpt-5-mini",
        "messages": [
           {
              "role": "system",

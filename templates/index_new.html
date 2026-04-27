@@ -1,971 +1,1022 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>alist-rename-strm</title>
-
-</head>
-
-
-<style>
-    .log-line {
-        opacity: 0;              /* 初始透明 */
-        transform: translateY(10px); /* 初始下移 10px */
-        animation: fadeInUp 0.5s forwards; /* 动画 */
-        margin: 2px 0;           /* 每行间距 */
-        font-family: monospace;  /* 等宽字体 */
-    }
-
-    @keyframes fadeInUp {
-        to {
-            opacity: 1;
-            transform: translateY(0);
+    <title>openlist-rename-strm</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Source+Sans+3:wght@400;500;600&family=Noto+Serif+SC:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --page: #ffffff;
+            --page-soft: #faf8f4;
+            --panel: #ffffff;
+            --panel-soft: #f7f4ef;
+            --border: #e6e0d7;
+            --border-strong: #d9d1c6;
+            --text-main: #1f1c18;
+            --text-sub: #736b61;
+            --accent: #6f7b69;
+            --accent-2: #b08568;
+            --danger: #a97064;
+            --shadow: 0 18px 38px rgba(42, 32, 24, 0.06);
         }
-    }
 
-
-
-    /*主页按键效果 */
-    #sidebar button {
-        transition: all 0.3s ease; /* 0.3 秒平滑过渡 */
-    }
-    /* 鼠标悬停效果 */
-    #sidebar button:hover {
-        transform: scale(1.05);      /* 放大 5% */
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3); /* 浮起阴影 */
-        filter: brightness(1.1);     /* 变亮一点 */
-    }
-    /* 点击效果 */
-    #sidebar button:active {
-        transform: scale(0.95); /* 点击时缩小 5% */
-        box-shadow: 0 2px 6px rgba(0,0,0,0.2); /* 阴影变小 */
-    }
-
-
-
-
-    /* 配置页面按键效果 */
-    .config-btn {
-        background-color: #3498db;
-        color: white;
-        border: none;
-        padding: 10px 10px;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: all 0.2s ease; /* 悬停和点击平滑过渡 */
-        margin-top: 10px;
-    }
-    /* 悬停效果 */
-    .config-btn:hover {
-        transform: scale(1.05);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        filter: brightness(1.1);
-    }
-    /* 点击效果 */
-    .config-btn:active {
-        transform: scale(0.95);
-        box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    }
-
-
-
-
-
-
-
-
-    /* 通用毛玻璃输入框样式,长条 */
-    .glass-input {
-        width: 95%;
-        margin-bottom: 10px;
-        padding: 8px 10px;
-        border-radius: 8px;                     /* 圆角 */
-        border: 1px solid rgba(255,255,255,0.3); /* 半透明边框 */
-        background: rgba(255,255,255,0.2);      /* 半透明背景 */
-        backdrop-filter: blur(10px);            /* 毛玻璃模糊 */
-        -webkit-backdrop-filter: blur(10px);    /* Safari 支持 */
-        color: #fff;                             /* 字体颜色 */
-        font-size: 14px;
-        outline: none;
-        transition: all 0.3s ease;              /* 聚焦时动画 */
-    }
-    /* 聚焦时的效果 */
-    .glass-input:focus {
-        border: 1px solid #4CAF50;  /* 边框变绿 */
-        background: rgba(255,255,255,0.25);
-        transform: scale(1.02);      /* 放大一点 */
-    }
-
-    /* 通用毛玻璃输入框样式,短条 */
-    .sglass-input {
-        width: 10%;
-        margin-bottom: 10px;
-        padding: 8px 10px;
-        border-radius: 8px;                     /* 圆角 */
-        border: 1px solid rgba(255,255,255,0.3); /* 半透明边框 */
-        background: rgba(255,255,255,0.2);      /* 半透明背景 */
-        backdrop-filter: blur(10px);            /* 毛玻璃模糊 */
-        -webkit-backdrop-filter: blur(10px);    /* Safari 支持 */
-        color: #fff;                             /* 字体颜色 */
-        font-size: 14px;
-        outline: none;
-        transition: all 0.3s ease;              /* 聚焦时动画 */
-
-    }
-    /* 聚焦时的效果 */
-    .sglass-input:focus {
-        border: 1px solid #4CAF50;  /* 边框变绿 */
-        background: rgba(255,255,255,0.25);
-        transform: scale(1.02);      /* 放大一点 */
-    }
-
-
-    /* 网页背景图片 */
-    body {
-    margin: 0;
-    padding: 0;
-    background-image: url('{{ url_for('static', filename='backgrounds/' ~ bg_image) }}'); /* 图片路径，可以是相对路径或绝对URL */
-    background-size: cover;        /* 图片铺满整个页面 */
-    background-position: center;   /* 图片居中显示 */
-    background-repeat: no-repeat;  /* 不重复 */
-    background-attachment: fixed;  /* 滚动时背景固定 */
-    }
-
-    /* 使用自定义字体 */
-    @font-face {
-        font-family: 'MyFont';
-        src: url('static/font/BRITANIC.TTF') format('truetype');
-    }
-    /* 只给 #footer 的文字使用自定义字体 */
-    #footer {
-        background-color: rgba(47,133,180,0);
-        height: 60px;
-        width: 800px;
-        border-radius: 10px;
-        padding: 10px;
-        text-align: left;
-        font-weight: bold;
-        margin: 0;
-
-        font-family: 'MyFont', sans-serif;
-    }
-
-</style>
-
-
-
-<body>
-    <!-- 配置首页 -->
-    <div id="footer" style="background-color:rgba(47,133,180,0);
-                        height: 60px;
-                        width: 800px;
-                        border-radius: 10px;
-                        padding: 10px;
-                        color: #ffffff;
-                        margin-left: 20px;
-                        text-align: left; /* 让文字居中 */
-                        font-size: 50px; /* 设置字体大小 */
-                        font-weight: bold; /* 让文字加粗 */
-                        ">
-        openlist-rename-strm
-    </div>
-
-
-
-    <hr><!-- hr是分线符 -->
-
-
-    <!-- 配置按钮 -->
-    <div id="sidebar" style="
-            margin-top: 20px;
-            height: 300px;
-            width: 100px;
-            float: left;
-            margin-left: 20px;
-            border-radius: 10px;
-            padding: 20px;
-            text-align: center;
-            border: 2px solid rgba(255,255,255,0.3); /* 半透明边框 */
-            background: rgba(255,255,255,0.2);        /* 半透明背景 */
-            backdrop-filter: blur(10px);              /* 毛玻璃模糊 */
-            -webkit-backdrop-filter: blur(10px);      /* Safari 支持 */
-        ">
-        <b></b>
-        <button onclick="runFile()" style="background-color: #4CAF50; color: white; border: none; padding: 10px 10px; border-radius: 5px; cursor: pointer;">
-            运行刷新
-        </button>
-
-        <button onclick="stopFile()" style="background-color: #62748e; color: white; border: none; padding: 10px 10px; border-radius: 5px; cursor:pointer; margin-top: 10px;">
-            停止刷新
-        </button>
-
-        <button onclick="clearLog()" style="background-color: #555; color: white; border: none; padding: 10px 10px; border-radius: 5px; cursor:pointer; margin-top: 10px;">
-            清空日志
-        </button>
-
-        <button onclick="openConfig()" style="background-color: #3498db; color: white; border: none; padding: 10px 10px; border-radius: 5px; cursor:pointer; margin-top: 10px;">
-            相关设置
-        </button>
-
-    </div>
-
-
-    <!-- 配置日志输出窗口 -->
-    <div style="margin-left: 240px; padding-top: 20px;">
-        <div id="output" style="
-            width: 1200px;
-            height: 600px;
-            border-radius: 10px;
-            border: 2px solid rgba(255,255,255,0.3); /* 半透明边框 */
-            overflow-y: auto;
-            background: rgba(255,255,255,0.2);       /* 半透明背景 */
-            backdrop-filter: blur(10px);             /* 毛玻璃模糊 */
-            -webkit-backdrop-filter: blur(10px);     /* Safari 支持 */
-            text-align: left;
-            color: #ffffff;
-            padding: 10px;
-        ">
-            <b>日志输出：</b>
-            <div id="log" style="margin-top:10px;"></div>
-        </div>
-    </div>
-
-
-
-
-    <!-- Toast 提示（临时弹窗） -->
-    <div id="toast" style="
-        visibility: hidden;
-        min-width: 200px;
-        background: rgba(255, 255, 255, 0.2);      /* 半透明背景 */
-        color: #fff;
-        text-align: center;
-        border-radius: 10px;
-        padding: 10px 14px;
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 9999;
-        font-size: 14px;
-        opacity: 0;
-        transform: translateY(-10px);
-        transition: opacity 0.25s ease, transform 0.25s ease;
-        backdrop-filter: blur(10px);               /* 毛玻璃模糊效果 */
-        -webkit-backdrop-filter: blur(10px);       /* Safari 支持 */
-        box-shadow: 0 2px 8px rgba(0,0,0,0.2);     /* 轻微阴影 */
-    "></div>
-
-
-
-
-    <!-- 更改设置弹窗 -->
-    <div id="configModal" style="
-        display: none; /* 默认隐藏 */
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 600px;
-        max-width: 90%;
-        max-height: 80vh;
-        background: rgba(255, 255, 255, 0.2); /* 半透明背景 */
-        border-radius: 10px;
-        padding: 20px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.3); /* 阴影效果 */
-        backdrop-filter: blur(15px);            /* 毛玻璃模糊 */
-        -webkit-backdrop-filter: blur(15px);    /* Safari 支持 */
-        z-index: 10000;
-        transition: all 0.3s ease;              /* 弹窗动画过渡 */
-
-
-    ">
-        <h3>修改配置（更多配置请见config/config.ini）</h3>
-        <!-- 配置输入表单 -->
-        <form id="configForm" style="
-        max-height: 60vh;      /* ⭐ 表单最大高度 */
-        overflow-y: auto;      /* ⭐ 超出出现滚动条 */
-        padding-right: 5px;    /* 防止滚动条压内容 */
-        ">
-
-
-            <label><span style="color:#ff0000;">*</span>openlist地址，例如：http://ip:5244:</label><br>
-            <input type="text" id="alist_url" class="glass-input"><br>
-
-            <label><span style="color:#ff0000;">*</span>openlist地址的apitoken，例如alist-*****:</label><br>
-            <input type="text" id="alist_apikey" class="glass-input"><br>
-
-            <label><span style="color:#ff0000;">*</span>openlist账户的密码:</label><br>
-            <input type="text" id="alist_password" class="glass-input"><br>
-
-
-            <label for="movies"> <span style="color:#ff0000;">*</span>监控的电影文件夹路径（使用英文标点符号）:</label><br>
-            <input type="text" id="movies" class="glass-input"><br>
-
-            <label for="series"><span style="color:#ff0000;">*</span>监控的剧集文件夹路径（使用英文标点符号）:</label><br>
-            <input type="text" id="series" class="glass-input"><br>
-
-
-
-            <label for="use_emby_refresh" >是否开启emby在生成strm之后自动刷新:</label><br>
-            <select id="use_emby_refresh" class="sglass-input" >
-                <option value="True">是</option>
-                <option value="False">否</option>
-            </select><br>
-
-            <label for="iyuu_token">是否开启微信iyuu媒体库通知，是的话填写token，如果不需要通知，填None即可</label><br>
-            <input type="text" id="iyuu_token" class="glass-input"><br>
-
-
-            <label for="emby_url">emby地址，例如http://ip:端口</label><br>
-            <input type="text" id="emby_url" class="glass-input"><br>
-
-            <label for="library_movie_new">挂载 电影 的emby媒体库名字，例如：115电影，这个媒体库要将监控文件夹生成的strm文件夹添加进来</label><br>
-            <input type="text" id="library_movie_new" class="glass-input"><br>
-
-            <label for="library_anime_new">挂载 动漫 的emby媒体库名字，例如：115动漫</label><br>
-            <input type="text" id="library_anime_new" class="glass-input"><br>
-
-            <label for="library_series">挂载 剧集 的emby媒体库名字，例如：115剧集</label><br>
-            <input type="text" id="library_series" class="glass-input"><br>
-
-            <label for="api_key">在emby里面生成一个apitoken，例如：121942*******</label><br>
-            <input type="text" id="api_key" class="glass-input"><br>
-
-
-
-
-
-
-            <label for="use_library">是否开启海报墙:</label><br>
-            <select id="use_library" class="sglass-input">
-                <option value="True">是</option>
-                <option value="False">否</option>
-            </select><br>
-
-            <label for="cron">海报墙定时刷新cron时间（仅在开启海报墙后生效）:</label><br>
-            <input type="text" id="cron" class="glass-input"><br>
-
-
-
-            <label for="is_use_ai">是否开启AI，开起后可以对剧集内容命名:</label><br>
-            <select id="is_use_ai" class="sglass-input">
-                <option value="True">是</option>
-                <option value="False">否</option>
-            </select><br>
-
-            <label for="chat_api">chat_api 形如 sk-******（需要去https://github.com/chatanywhere/GPT_API_free申请免费api）
-                如果不用ai命名，默认None即可:</label><br>
-            <input type="text" id="chat_api" class="glass-input"><br>
-
-            <label for="use_ai_title">是否使AI对电影或剧集标题进行命名（仅在开启AI后有效）:</label><br>
-            <select id="use_ai_title" class="sglass-input">
-                <option value="True">是</option>
-                <option value="False">否</option>
-            </select><br>
-
-            <label for="is_use_asyncio">是否使用异步操作(加快命名速度，可能会造成风控):</label><br>
-            <select id="is_use_asyncio" class="sglass-input">
-                <option value="True">是</option>
-                <option value="False">否</option>
-            </select><br>
-
-            <label for="restart_update">容器重启是否更新已命名列表:</label><br>
-            <select id="restart_update" class="sglass-input">
-                <option value="True">是</option>
-                <option value="False">否</option>
-            </select><br>
-
-            <label for="ai_confidence">AI命名置信度:</label><br>
-            <input type="number" id="ai_confidence" min="0" class="glass-input" max="100" step="1" ><br>
-
-            <!-- 可以根据config.ini增加更多输入项 -->
-            <div style="text-align:right; margin-top: 20px;">
-                <button type="button" class="config-btn" onclick="saveConfig()" style="background-color: #4CAF50; color:white; padding:5px 15px; border:none; border-radius:5px; margin-right:10px;">保存</button>
-                <button type="button" class="config-btn" onclick="closeConfig()" style="background-color:#f44336; color:white; padding:5px 15px; border:none; border-radius:5px;">关闭</button>
-            </div>
-        </form>
-    </div>
-    <!-- 弹窗背景遮罩 -->
-    <div id="modalOverlay" style="
-        display:none;
-        position: fixed;
-        top:0; left:0;
-        width:100%; height:100%;
-        background-color: rgba(0,0,0,0.2);  /* 可以调整透明度 */
-        backdrop-filter: blur(5px);          /* 后面内容模糊 */
-        -webkit-backdrop-filter: blur(5px);  /* Safari 支持 */
-        z-index:9999;
-    "></div>
-
-
-
-    <!-- GitHub 浮动按钮（只点击，不交互） -->
-    <div id="github-link" style="
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scrollbar-gutter: stable;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            color: var(--text-main);
+            font-family: "Source Sans 3", "Microsoft YaHei UI", sans-serif;
+            {% if bg_image %}
+            background-image: url("/static/backgrounds/{{ bg_image }}");
+            {% else %}
+            background-image:
+                linear-gradient(180deg, rgba(246, 242, 236, 0.62), rgba(255, 255, 255, 0) 220px);
+            {% endif %}
+            background-color: var(--page);
+            background-position: center;
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+
+        body::before {
+            content: "";
             position: fixed;
-            bottom: 40px;
-            left: 20px;
-            color: #ffffff;
-            font-family: sans-serif;
-            font-size: 15px;
-            cursor: pointer;
-            text-decoration: none;              /* 不显示下划线 */
+            inset: 0;
+            pointer-events: none;
+            {% if bg_image %}
+            display: none;
+            {% endif %}
+            background:
+                linear-gradient(90deg, rgba(0, 0, 0, 0.018), transparent 9%, transparent 91%, rgba(0, 0, 0, 0.018)),
+                repeating-linear-gradient(
+                    0deg,
+                    rgba(0, 0, 0, 0.01) 0,
+                    rgba(0, 0, 0, 0.01) 1px,
+                    transparent 1px,
+                    transparent 6px
+                );
+            opacity: 0.3;
+        }
+
+        .app {
+            position: relative;
+            z-index: 1;
+            max-width: 1460px;
+            margin: 0 auto;
+            padding: 34px 24px 28px;
+        }
+
+        .topbar {
             display: flex;
-            align-items: center;                /* 垂直居中对齐 */
-            gap: 8px;                           /* 图片和文字间距 */
-            padding: 6px 10px;                  /* 内边距，让毛玻璃看起来更自然 */
-            border-radius: 10px;                /* 圆角 */
-            background: rgba(255,255,255,0.2);  /* 半透明背景 */
-            backdrop-filter: blur(8px);         /* 毛玻璃效果 */
-            -webkit-backdrop-filter: blur(8px); /* Safari 支持 */
-            border: 1px solid rgba(255,255,255,0.3); /* 半透明边框 */
-            min-width: 100px;
-        "
-        onclick="window.open('https://github.com/awordx/openlist-rename-strm', '_blank')"
-        >
-            <img src="static/icon/github.png" alt="GitHub" style="width:20px; height:20px;">
-            <span>openlist-rename-strm</span>
-        </div>
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
 
-    <!-- 版本号浮动框 -->
-    <div id="version-info" style="
-        position: fixed;
-        bottom: 80px;             /* GitHub 按钮上方 */
-        left: 20px;
-        background: rgba(255,255,255,0.2);  /* 半透明背景 */
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        border: 1px solid rgba(255,255,255,0.3);
-        border-radius: 10px;
-        padding: 6px 12px;
-        color: #ffffff;
-        width: 160px;
-        height: 22px;
-        font-family: '微软雅黑', sans-serif;
-        font-size: 14px;
-        cursor: default;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        transition: transform 0.2s;
-    ">
-        <span>版本：</span>
-        <b id="version-number">Beta 4.9.0</b>
-    </div>
+        .brand {
+            display: grid;
+            gap: 6px;
+        }
 
+        .brand h1 {
+            margin: 0;
+            color: var(--text-main);
+            font-family: "Cormorant Garamond", "Noto Serif SC", serif;
+            font-size: clamp(42px, 5vw, 70px);
+            font-weight: 600;
+            line-height: 0.92;
+        }
 
+        .brand p {
+            margin: 0;
+            color: var(--text-sub);
+            font-family: "Noto Serif SC", serif;
+            font-size: 14px;
+            letter-spacing: 0.04em;
+        }
 
+        .version-pill {
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 8px 14px;
+            color: var(--text-sub);
+            font-size: 13px;
+            white-space: nowrap;
+            box-shadow: 0 8px 24px rgba(42, 32, 24, 0.04);
+        }
 
+        #version-number {
+            color: var(--text-main);
+            font-weight: 600;
+        }
 
-    <!-- 统计媒体库数量 -->
-    <div id="statsBox" style="
-        position: fixed;
-        top: 122px;
-        right: 20px;
-        width: 220px;
-        padding: 15px;
-        border-radius: 12px;
-        background: rgba(255,255,255,0.25);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 2px solid rgba(255,255,255,0.3);
-        color: #fff;
-        font-family: sans-serif;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.25);
-    ">
-        <div style="font-size:16px; font-weight:bold; margin-bottom:10px;">
-            📊 资源统计
-        </div>
+        .toolbar {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(132px, 1fr));
+            gap: 12px;
+            margin-bottom: 18px;
+        }
 
-        <div id="statsContent" style="font-size:14px; line-height:1.8;">
-            正在加载...
-        </div>
-    </div>
-
-
-
-
-
-
-    <!-- 网页右侧显示文件大小 -->
-    <div id="filesize-container" style="
-        position: fixed;
-        top: 260px;
-        right: 20px;
-        width: 230px;
-        max-height: 400px;  /* 最大高度 */
-        overflow-y: auto;   /* 超出部分可滚动 */
-        background: rgba(255,255,255,0.2);
-        border: 2px solid rgba(255,255,255,0.3);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        border-radius: 10px;
-        padding: 10px;
-        color: #fff;
-        font-family: '微软雅黑', sans-serif;
-        font-size: 14px;
-    ">
-        <b>最近新增：</b>
-        <div id="filesize-list"></div>
-    </div>
-
-
-
-
-
-    <!-- 浮动说明按钮 -->
-    <div id="info-button" style="
-            position: fixed;
-            bottom: 120px;
-            left: 20px;
-            color: #ffffff;
-            font-family: sans-serif;
-            font-size: 15px;
+        .btn {
+            min-height: 46px;
+            border: 1px solid var(--border-strong);
+            border-radius: 8px;
+            color: var(--text-main);
+            background: var(--panel);
             cursor: pointer;
-            padding: 6px 10px;
-            border-radius: 10px;
-            background: rgba(255,255,255,0.2);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            border: 1px solid rgba(255,255,255,0.3);
             display: flex;
             align-items: center;
-            gap: 5px;
-        "
-        onclick="openInfoModal()"
-    >
-<!--        <img src="static/picture/info.png" alt="Info" style="width:20px;height:20px;">-->
-        <span>一些说明</span>
-    </div>
+            justify-content: center;
+            gap: 9px;
+            font-family: "Source Sans 3", sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+            box-shadow: 0 2px 0 rgba(24, 18, 12, 0.015);
+        }
 
-    <!-- 说明弹窗 -->
-    <div id="infoModal" style="
+        .btn:hover {
+            transform: translateY(-1px);
+            border-color: #d4c9bb;
+            box-shadow: 0 12px 26px rgba(42, 32, 24, 0.06);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn.run {
+            background: rgba(111, 123, 105, 0.09);
+            border-color: rgba(111, 123, 105, 0.35);
+            color: #53604f;
+        }
+
+        .btn.stop {
+            background: rgba(169, 112, 100, 0.08);
+            border-color: rgba(169, 112, 100, 0.28);
+            color: #8d6458;
+        }
+
+        .btn.muted {
+            background: rgba(141, 132, 122, 0.08);
+            border-color: rgba(141, 132, 122, 0.22);
+            color: #6f675f;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 320px;
+            gap: 18px;
+            align-items: start;
+        }
+
+        .panel {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--panel);
+            box-shadow: var(--shadow);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .panel-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: "Noto Serif SC", serif;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .panel-title svg {
+            width: 16px;
+            height: 16px;
+            color: var(--text-sub);
+        }
+
+        #output {
+            height: min(56vh, 520px);
+            min-height: 320px;
+            overflow-y: auto;
+            padding: 18px;
+            font-family: "Consolas", "Courier New", monospace;
+            font-size: 13px;
+            line-height: 1.68;
+            color: var(--text-main);
+            background: linear-gradient(180deg, var(--page-soft), var(--page));
+        }
+
+        #log {
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .log-line {
+            opacity: 0;
+            transform: translateY(6px);
+            animation: fadeInUp 0.3s forwards;
+            margin: 2px 0;
+            color: #302b25;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .aside {
+            display: grid;
+            gap: 16px;
+            align-content: start;
+        }
+
+        .stat-content,
+        .filesize-content {
+            padding: 16px 18px 18px;
+            font-size: 14px;
+            color: var(--text-sub);
+            line-height: 1.85;
+        }
+
+        #statsContent b {
+            color: var(--text-main);
+        }
+
+        #filesize-list {
+            display: grid;
+            gap: 8px;
+            max-height: 46vh;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .size-item {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--panel-soft);
+            padding: 10px 12px;
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            font-size: 13px;
+            align-items: baseline;
+        }
+
+        .size-name {
+            color: var(--text-main);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex: 1;
+        }
+
+        .size-value {
+            color: var(--accent);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .dock {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .dock-link {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.96);
+            color: var(--text-sub);
+            text-decoration: none;
+            padding: 10px 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            font-size: 13px;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            transition: transform 0.18s ease, box-shadow 0.18s ease;
+        }
+
+        .dock-link:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 26px rgba(42, 32, 24, 0.06);
+        }
+
+        .dock-link svg {
+            width: 16px;
+            height: 16px;
+            color: var(--text-sub);
+        }
+
+        #toast {
+            visibility: hidden;
+            min-width: 220px;
+            max-width: min(88vw, 380px);
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.98);
+            color: var(--text-main);
+            text-align: center;
+            border-radius: 8px;
+            padding: 12px 16px;
+            position: fixed;
+            top: 18px;
+            right: 18px;
+            z-index: 9999;
+            font-size: 13px;
+            box-shadow: 0 16px 30px rgba(42, 32, 24, 0.08);
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: opacity 0.25s ease, transform 0.25s ease;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(249, 246, 241, 0.78);
+            backdrop-filter: blur(6px);
+            z-index: 9998;
+        }
+
+        .modal {
             display: none;
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 600px;
-            max-width: 90%;
-            max-height: 80%;
-            overflow-y: auto;
-            background: rgba(255,255,255,0.2);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border-radius: 10px;
-            padding: 20px;
+            width: min(920px, 94vw);
+            max-height: 86vh;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.985);
+            box-shadow: 0 24px 54px rgba(42, 32, 24, 0.1);
             z-index: 10000;
-        ">
-        <h3>使用说明</h3>
-        <ul>
-            <li>1. 也可以直接访问 http://ip:5050/stream进行快捷刷新</li>
-            <li>2. 可以访问https://github.com/awordx/openlist-rename-strm探索其他功能</li>
-            <li>3. 如果遇到点击刷新没有反应，也可以访问 http://ip:5050/stream 查看报错日志</li>
-            <li>4. 一些存在的小问题：①网页刷新后日志通道不稳定，可能会吞掉一两行日志，点击“运行刷新”按钮后即可解决问题
-            ②如果删除文件夹文件过多，可能导致删除失败，openlist api问题
-                ③如果移动文件过多，可能会导致移动失败，openlist api问题
-            </li>
-        </ul>
-        <div style="text-align:right; margin-top: 20px;">
-            <button style="
-                    background-color:#f44336;
-                    color:white;
-                    padding:5px 15px;
-                    border:none;
-                    border-radius:5px;
-                " onclick="closeInfoModal()">关闭</button>
+            overflow: hidden;
+        }
+
+        .modal-head {
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .modal-title {
+            margin: 0;
+            color: var(--text-main);
+            font-family: "Cormorant Garamond", "Noto Serif SC", serif;
+            font-size: 30px;
+            font-weight: 600;
+            line-height: 1;
+        }
+
+        .modal-body {
+            padding: 18px 20px;
+            overflow-y: auto;
+            max-height: calc(86vh - 140px);
+        }
+
+        .modal-foot {
+            border-top: 1px solid var(--border);
+            padding: 14px 20px 18px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            background: var(--page-soft);
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px 18px;
+        }
+
+        .field {
+            display: grid;
+            gap: 6px;
+        }
+
+        .field-full {
+            grid-column: 1 / -1;
+        }
+
+        .field label {
+            font-size: 13px;
+            color: var(--text-sub);
+            line-height: 1.5;
+        }
+
+        .glass-input,
+        .sglass-input {
+            width: 100%;
+            height: 42px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--page-soft);
+            color: var(--text-main);
+            padding: 0 12px;
+            outline: none;
+            font-family: "Source Sans 3", sans-serif;
+            font-size: 14px;
+            transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+        }
+
+        .glass-input:focus,
+        .sglass-input:focus {
+            border-color: rgba(111, 123, 105, 0.45);
+            box-shadow: 0 0 0 3px rgba(111, 123, 105, 0.08);
+            background: #fff;
+        }
+
+        #infoModal .modal-body {
+            font-size: 14px;
+            color: var(--text-sub);
+            line-height: 1.85;
+        }
+
+        #infoModal ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+
+        #infoModal li + li {
+            margin-top: 8px;
+        }
+
+        @media (max-width: 1220px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            .aside {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            #output {
+                height: 58vh;
+                min-height: 360px;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .app {
+                padding: 28px 16px 20px;
+            }
+
+            .toolbar {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .config-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .brand h1 {
+                font-size: 42px;
+            }
+
+            .aside {
+                grid-template-columns: 1fr;
+            }
+
+            .dock {
+                flex-direction: column;
+            }
+
+            .dock-link {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <header class="topbar">
+        <div class="brand">
+            <h1>openlist-rename-strm</h1>
+            <p>媒体重命名与 .strm 自动化控制台</p>
         </div>
+        <div class="version-pill" id="version-info">版本 <span id="version-number">Beta 4.9.1</span></div>
+    </header>
+
+    <section class="toolbar">
+        <button class="btn run" onclick="runFile()"><i data-lucide="play"></i><span>运行刷新</span></button>
+        <button class="btn stop" onclick="stopFile()"><i data-lucide="square"></i><span>停止刷新</span></button>
+        <button class="btn muted" onclick="clearLog()"><i data-lucide="eraser"></i><span>清空日志</span></button>
+        <button class="btn" onclick="openConfig()"><i data-lucide="settings-2"></i><span>相关设置</span></button>
+    </section>
+
+    <section class="layout">
+        <article class="panel">
+            <div class="panel-header">
+                <div class="panel-title"><i data-lucide="scroll-text"></i><span>日志输出</span></div>
+                <span style="font-size:12px;color:#9fbedb;">/log_stream</span>
+            </div>
+            <div id="output">
+                <div id="log"></div>
+            </div>
+        </article>
+
+        <aside class="aside">
+            <div id="statsBox" class="panel">
+                <div class="panel-header">
+                    <div class="panel-title"><i data-lucide="bar-chart-3"></i><span>资源统计</span></div>
+                </div>
+                <div class="stat-content" id="statsContent">加载中...</div>
+            </div>
+
+            <div id="filesize-container" class="panel">
+                <div class="panel-header">
+                    <div class="panel-title"><i data-lucide="sparkles"></i><span>最近新增</span></div>
+                </div>
+                <div class="filesize-content">
+                    <div id="filesize-list"></div>
+                </div>
+            </div>
+
+            <div class="dock">
+                <a class="dock-link" id="github-link" onclick="window.open('https://github.com/awordx/openlist-rename-strm', '_blank')">
+                    <i data-lucide="github"></i><span>GitHub</span>
+                </a>
+                <a class="dock-link" id="info-button" onclick="openInfoModal()">
+                    <i data-lucide="info"></i><span>使用说明</span>
+                </a>
+            </div>
+        </aside>
+    </section>
+</div>
+
+<div id="toast"></div>
+
+<div id="modalOverlay" class="modal-overlay"></div>
+<div id="configModal" class="modal">
+    <div class="modal-head">
+        <h3 class="modal-title">配置中心</h3>
+        <button type="button" class="btn muted" style="height:34px;padding:0 12px;" onclick="closeConfig()">
+            <i data-lucide="x"></i>
+        </button>
     </div>
-    <!-- 弹窗遮罩 -->
-    <div id="infoOverlay" style="
-            display:none;
-            position: fixed;
-            top:0; left:0;
-            width:100%; height:100%;
-            background-color: rgba(0,0,0,0.2);
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
-            z-index: 9999;
-        "></div>
-
-
-
-
-
-
-
-    <script>
-        //说明按键弹窗
-        function openInfoModal()
-        {
-            document.getElementById('infoModal').style.display = 'block';
-            document.getElementById('infoOverlay').style.display = 'block';
-        }
-        function closeInfoModal()
-        {
-            document.getElementById('infoModal').style.display = 'none';
-            document.getElementById('infoOverlay').style.display = 'none';
-        }
-
-
-
-
-        //用来屏蔽一些开关
-        function toggleBySelect(selectId, targetIds) {
-        const select = document.getElementById(selectId);
-        if (!select) return;
-
-        const enabled = select.value === 'True';
-        targetIds.forEach(id => {
-            const el = document.getElementById(id);
-            if (!el) return;
-
-            el.disabled = !enabled;
-            el.style.opacity = enabled ? '1' : '0.5';
-
-        <!--            // 禁用时可选：清空内容-->
-        <!--            if (!enabled && el.tagName === 'INPUT') {-->
-        <!--                el.value = '';-->
-        <!--            }-->
-                });
-            }
-
-        function updateAllOptions() {
-            // AI 联动
-            toggleBySelect('is_use_ai', ['use_ai_title','chat_api']);
-
-            // 海报墙联动
-            toggleBySelect('use_library', ['cron']);
-
-            // emby刷新
-            toggleBySelect('use_emby_refresh', ['iyuu_token','emby_url','library_movie_new','library_anime_new','library_series','api_key']);
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            updateAllOptions();
-            document.getElementById('is_use_ai')
-                ?.addEventListener('change', updateAllOptions);
-
-            document.getElementById('use_library')
-                ?.addEventListener('change', updateAllOptions);
-
-            document.getElementById('use_emby_refresh')
-                ?.addEventListener('change', updateAllOptions);
-        });
-    </script>
-
-
-
-    <script>
-
-        // window.eventSource 全局保存，避免重复打开多个连接
-        window.eventSource = null;
-
-        // 显示临时 toast
-        function showToast(message, duration = 3000) {
-            const toast = document.getElementById("toast");
-            toast.textContent = message;
-            toast.style.visibility = "visible";
-            toast.style.opacity = "1";
-            toast.style.transform = "translateY(0)";
-            // 自动隐藏
-            setTimeout(() => {
-                toast.style.opacity = "0";
-                toast.style.transform = "translateY(-10px)";
-                setTimeout(() => {
-                    toast.style.visibility = "hidden";
-                }, 250); // 与 transition 保持一致
-            }, duration);
-        }
-
-
-        // runFile: 启动刷新并建立/重用日志流
-        function runFile() {
-            appendLog("▶ 开始执行刷新任务……");
-            fetch('/refresh', { method: 'POST' })
-                .then(response => response.text())
-                .then(data => {
-                    // 显示临时提示（用返回的文本或默认消息）
-                    if (data && data.trim()) {
-                        showToast(data.trim(), 3000);
-                    } else {
-                        showToast("刷新已启动，请稍等片刻", 3000);
-                    }
-                })
-                .catch(error => {
-                    console.error('刷新启动失败：', error);
-                    showToast("刷新启动失败", 3000);
-                });
-            // 如果已有活动的 EventSource 且未关闭，就不要再新建
-            if (window.eventSource && window.eventSource.readyState !== EventSource.CLOSED) {
-                // 已有连接，直接返回（日志会自动追加）
-                return;
-            }
-
-            // 建立新的日志流连接
-            try {
-                window.eventSource = new EventSource('/log_stream');
-                window.eventSource.onmessage = function(event) {
-                    const outputDiv = document.getElementById("output");
-                    const logPre = document.getElementById("log");
-                    // 滑动追加日志（保持格式）
-                    const logDiv = document.getElementById("log");
-                    window.eventSource.onmessage = function(event)
-                    {
-                        const outputDiv = document.getElementById("output");
-                        // 创建每行日志 div
-                        const lineDiv = document.createElement("div");
-                        lineDiv.className = "log-line";
-                        lineDiv.textContent = event.data;
-                        logDiv.appendChild(lineDiv);
-                        // 自动滚动到底部
-                        requestAnimationFrame(() => {
-                            outputDiv.scrollTop = outputDiv.scrollHeight;
-                        });
-                    };
-                    // 下一帧再滚动到底部，确保浏览器已完成 layout
-                    requestAnimationFrame(() => {
-                        outputDiv.scrollTop = outputDiv.scrollHeight;
-                    });
-                };
-
-                window.eventSource.onopen = function() {
-                    console.log("日志流已连接");
-                };
-
-                window.eventSource.onerror = function(e) {
-                    console.log("日志流出现错误或已断开", e);
-                    // 关闭连接并在 1s 后允许重连（防止短时间内多次重连）
-                    if (window.eventSource) {
-                        window.eventSource.close();
-                        window.eventSource = null;
-                    }
-                    // 你可以显示一个短的 toast 提示
-                    showToast("日志流已断开", 2000);
-                };
-            } catch (err) {
-                console.error("无法创建 EventSource:", err);
-                showToast("无法连接日志流", 3000);
-            }
-
-        }
-
-
-
-
-
-
-
-        //停止正在运行的程序
-        function stopFile()
-        {
-        fetch('/stop', { method: 'POST' })  // 确保是 POST
-        .then(response => response.text())
-        .then(data => showToast(data, 3000))
-        .catch(error => showToast("停止失败", 3000));
-         }
-
-
-
-        // 清空所有日志内容
-        function clearLog() {
-        const logDiv = document.getElementById("log");
-        logDiv.innerHTML = "";
-        showToast("日志已成功清空", 3000);
-        }
-
-
-
-
-
-        // 配置页面设置
-        async function openConfig() {
-
-
-            // session记住密码
-<!--        const authCheck = await fetch('/config_authenticated');-->
-<!--        const authResult = await authCheck.json();-->
-<!--        if (!authResult.authenticated)-->
-<!--            {-->
-                // 弹出密码输入框
-                const password = prompt("请输入配置密码：");
-                if (!password) return;
-                // 发送到后端验证
-                const response = await fetch('/check_config_password', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password })
-                });
-                const result = await response.json();
-                if (!result.valid) {
-                    alert("密码错误，无法打开配置");
-                    return;
-                }
-<!--            }-->
-
-            // 密码正确或已验证，显示配置弹窗
-        document.getElementById('configModal').style.display = 'block';
-        document.getElementById('modalOverlay').style.display = 'block';
-
-
-        // 先从后台获取配置并填充到表单
-        fetch('/get_config')
-            .then(res => res.json())
-            .then(data => {
-
-
-                document.getElementById('alist_url').value = data.alist_url || '';
-                document.getElementById('alist_apikey').value = data.alist_apikey || '';
-                document.getElementById('alist_password').value = data.alist_password || '';
-
-                document.getElementById('iyuu_token').value = data.iyuu_token || '';
-                document.getElementById('emby_url').value = data.emby_url || '';
-                document.getElementById('library_movie_new').value = data.library_movie_new || '';
-                document.getElementById('library_anime_new').value = data.library_anime_new || '';
-                document.getElementById('library_series').value = data.library_series || '';
-                document.getElementById('api_key').value = data.api_key || '';
-
-
-
-                document.getElementById('ai_confidence').value = data.ai_confidence || 0.8;
-                document.getElementById('movies').value = data.movies || '';
-                document.getElementById('series').value = data.series || '';
-                document.getElementById('cron').value = data.cron || '';
-
-                document.getElementById('chat_api').value = data.chat_api || '';
-
-
-                document.getElementById('use_library').value = data.use_library || "True";
-                document.getElementById('use_ai_title').value = data.use_ai_title || "True";
-                document.getElementById('is_use_ai').value = data.is_use_ai || "True";
-                document.getElementById('is_use_asyncio').value = data.is_use_asyncio || "True";
-                document.getElementById('restart_update').value = data.restart_update || "True";
-                document.getElementById('use_emby_refresh').value = data.use_emby_refresh || "True";
-                updateAllOptions();
-            });
-
-        document.getElementById('configModal').style.display = 'block';
-        document.getElementById('modalOverlay').style.display = 'block';
-        }
-
-        function closeConfig() {
-            document.getElementById('configModal').style.display = 'none';
-            document.getElementById('modalOverlay').style.display = 'none';
-        }
-
-        function saveConfig()
-        {
-            const data =
-                {
-
-                    alist_url: document.getElementById('alist_url').value,
-                    alist_apikey: document.getElementById('alist_apikey').value,
-                    alist_password: document.getElementById('alist_password').value,
-
-                    ai_confidence: parseFloat(document.getElementById('ai_confidence').value),
-                    movies: document.getElementById('movies').value,
-                    series: document.getElementById('series').value,
-                    cron: document.getElementById('cron').value,
-                    use_library: document.getElementById('use_library').value,
-
-
-                    emby_url: document.getElementById('emby_url').value,
-                    library_movie_new: document.getElementById('library_movie_new').value,
-                    library_anime_new: document.getElementById('library_anime_new').value,
-                    library_series: document.getElementById('library_series').value,
-                    api_key: document.getElementById('api_key').value,
-                    iyuu_token: document.getElementById('iyuu_token').value,
-
-
-                    use_ai_title: document.getElementById('use_ai_title').value,
-                    is_use_ai: document.getElementById('is_use_ai').value,
-                    is_use_asyncio: document.getElementById('is_use_asyncio').value,
-                    restart_update: document.getElementById('restart_update').value,
-                    use_emby_refresh: document.getElementById('use_emby_refresh').value,
-
-
-                    chat_api: document.getElementById('chat_api').value,
-
-                };
-
-            fetch('/save_config',
-                {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                })
-                .then(res => res.text())
-                .then(msg => {
-                    showToast(msg || "配置已保存", 2000);
-                    closeConfig();
-                })
-                .catch(err => {
-                    console.error(err);
-                    showToast("保存失败", 2000);
-                });
-        }
-
-
-
-        function loadStats() {
-        fetch('/get_stats')
-            .then(res => res.json())
-            .then(data => {
-                document.getElementById('statsContent').innerHTML = `
-                    🎬 电影总数：<b>${data.movies}</b><br>
-                    📺 剧集总数：<b>${data.series_count}</b>
-                `;
-            })
-            .catch(err => {
-                console.error(err);
-                document.getElementById('statsContent').innerText = '统计信息获取失败';
-            });
+    <div class="modal-body">
+        <form id="configForm" class="config-grid">
+            <div class="field field-full">
+                <label for="alist_url">* Openlist 地址（例如 http://ip:5244）</label>
+                <input type="text" id="alist_url" class="glass-input">
+            </div>
+            <div class="field field-full">
+                <label for="alist_apikey">* Openlist API Token</label>
+                <input type="text" id="alist_apikey" class="glass-input">
+            </div>
+            <div class="field field-full">
+                <label for="alist_password">* Openlist 账号密码</label>
+                <input type="text" id="alist_password" class="glass-input">
+            </div>
+
+            <div class="field">
+                <label for="movies">* 电影监控路径（英文逗号分隔）</label>
+                <input type="text" id="movies" class="glass-input">
+            </div>
+            <div class="field">
+                <label for="series">* 剧集监控路径（英文逗号分隔）</label>
+                <input type="text" id="series" class="glass-input">
+            </div>
+
+            <div class="field">
+                <label for="use_emby_refresh">生成 strm 后自动刷新 Emby</label>
+                <select id="use_emby_refresh" class="sglass-input">
+                    <option value="True">True</option>
+                    <option value="False">False</option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="iyuu_token">IYUU Token（不通知填 None）</label>
+                <input type="text" id="iyuu_token" class="glass-input">
+            </div>
+
+            <div class="field">
+                <label for="emby_url">Emby 地址（例如 http://ip:8096）</label>
+                <input type="text" id="emby_url" class="glass-input">
+            </div>
+            <div class="field">
+                <label for="api_key">Emby API Key</label>
+                <input type="text" id="api_key" class="glass-input">
+            </div>
+
+            <div class="field">
+                <label for="library_movie_new">电影媒体库名称</label>
+                <input type="text" id="library_movie_new" class="glass-input">
+            </div>
+            <div class="field">
+                <label for="library_anime_new">动漫媒体库名称</label>
+                <input type="text" id="library_anime_new" class="glass-input">
+            </div>
+            <div class="field field-full">
+                <label for="library_series">剧集媒体库名称</label>
+                <input type="text" id="library_series" class="glass-input">
+            </div>
+
+            <div class="field">
+                <label for="use_library">开启海报墙</label>
+                <select id="use_library" class="sglass-input">
+                    <option value="True">True</option>
+                    <option value="False">False</option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="cron">海报墙定时刷新 Cron</label>
+                <input type="text" id="cron" class="glass-input">
+            </div>
+
+            <div class="field">
+                <label for="is_use_ai">启用 AI 命名</label>
+                <select id="is_use_ai" class="sglass-input">
+                    <option value="True">True</option>
+                    <option value="False">False</option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="use_ai_title">AI 标题重命名</label>
+                <select id="use_ai_title" class="sglass-input">
+                    <option value="True">True</option>
+                    <option value="False">False</option>
+                </select>
+            </div>
+
+            <div class="field field-full">
+                <label for="chat_api">Chat API Key（不使用 AI 可填 None）</label>
+                <input type="text" id="chat_api" class="glass-input">
+            </div>
+
+            <div class="field">
+                <label for="is_use_asyncio">使用异步操作</label>
+                <select id="is_use_asyncio" class="sglass-input">
+                    <option value="True">True</option>
+                    <option value="False">False</option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="restart_update">容器重启后更新已命名列表</label>
+                <select id="restart_update" class="sglass-input">
+                    <option value="True">True</option>
+                    <option value="False">False</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="ai_confidence">AI 命名置信度</label>
+                <input type="number" id="ai_confidence" min="0" max="100" step="1" class="glass-input">
+            </div>
+        </form>
+    </div>
+    <div class="modal-foot">
+        <button type="button" class="btn run" style="height:36px;padding:0 14px;" onclick="saveConfig()">
+            <i data-lucide="save"></i><span>保存</span>
+        </button>
+        <button type="button" class="btn stop" style="height:36px;padding:0 14px;" onclick="closeConfig()">
+            <i data-lucide="x-circle"></i><span>关闭</span>
+        </button>
+    </div>
+</div>
+
+<div id="infoOverlay" class="modal-overlay"></div>
+<div id="infoModal" class="modal" style="width:min(760px,94vw);">
+    <div class="modal-head">
+        <h3 class="modal-title">使用说明</h3>
+        <button type="button" class="btn muted" style="height:34px;padding:0 12px;" onclick="closeInfoModal()">
+            <i data-lucide="x"></i>
+        </button>
+    </div>
+    <div class="modal-body">
+        <ul>
+            <li>可以直接访问 <code>http://ip:5050/stream</code> 快捷刷新。</li>
+            <li>项目主页：<code>https://github.com/awordx/openlist-rename-strm</code>。</li>
+            <li>如果点击刷新无响应，可以访问 <code>/stream</code> 检查日志。</li>
+            <li>当 Openlist API 批量移动或删除文件较多时，可能会出现失败，建议重试刷新。</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+    if (window.lucide) {
+        window.lucide.createIcons();
     }
 
-        // 页面加载后调用
-        loadStats();
+    function openInfoModal() {
+        document.getElementById("infoModal").style.display = "block";
+        document.getElementById("infoOverlay").style.display = "block";
+    }
 
+    function closeInfoModal() {
+        document.getElementById("infoModal").style.display = "none";
+        document.getElementById("infoOverlay").style.display = "none";
+    }
 
-
-
-        function updateFilesize() {
-        fetch('/get_filesize')
-            .then(res => res.json())
-            .then(data => {
-                const container = document.getElementById('filesize-list');
-                container.innerHTML = ''; // 先清空
-                for (const [name, size] of Object.entries(data)) {
-                    const sizeText = size === '-' ? '-' : size + ' GB';
-                    const div = document.createElement('div');
-                    div.textContent = `${name}：${sizeText}`;
-                    container.appendChild(div);
-                }
-            })
-            .catch(err => console.error(err));
+    function toggleBySelect(selectId, targetIds) {
+        const select = document.getElementById(selectId);
+        if (!select) {
+            return;
         }
 
-        // 页面加载后更新一次
-        window.onload = updateFilesize;
-        setInterval(updateFilesize, 10000);
+        const enabled = select.value === "True";
+        targetIds.forEach((id) => {
+            const el = document.getElementById(id);
+            if (!el) {
+                return;
+            }
+            el.disabled = !enabled;
+            el.style.opacity = enabled ? "1" : "0.5";
+        });
+    }
 
+    function updateAllOptions() {
+        toggleBySelect("is_use_ai", ["use_ai_title", "chat_api"]);
+        toggleBySelect("use_library", ["cron"]);
+        toggleBySelect("use_emby_refresh", [
+            "iyuu_token",
+            "emby_url",
+            "library_movie_new",
+            "library_anime_new",
+            "library_series",
+            "api_key"
+        ]);
+    }
 
+    document.addEventListener("DOMContentLoaded", () => {
+        updateAllOptions();
+        document.getElementById("is_use_ai")?.addEventListener("change", updateAllOptions);
+        document.getElementById("use_library")?.addEventListener("change", updateAllOptions);
+        document.getElementById("use_emby_refresh")?.addEventListener("change", updateAllOptions);
+    });
+</script>
 
+<script>
+    window.eventSource = null;
 
+    function showToast(message, duration = 3000) {
+        const toast = document.getElementById("toast");
+        toast.textContent = message;
+        toast.style.visibility = "visible";
+        toast.style.opacity = "1";
+        toast.style.transform = "translateY(0)";
 
-        function appendLog(text) {
+        setTimeout(() => {
+            toast.style.opacity = "0";
+            toast.style.transform = "translateY(-10px)";
+            setTimeout(() => {
+                toast.style.visibility = "hidden";
+            }, 250);
+        }, duration);
+    }
+
+    function appendLog(text) {
         const logDiv = document.getElementById("log");
         const outputDiv = document.getElementById("output");
         const lineDiv = document.createElement("div");
         lineDiv.className = "log-line";
         lineDiv.textContent = text;
         logDiv.appendChild(lineDiv);
-
-        // 自动滚动到底部
         requestAnimationFrame(() => {
             outputDiv.scrollTop = outputDiv.scrollHeight;
         });
+    }
+
+    function ensureLogStream() {
+        if (window.eventSource && window.eventSource.readyState !== EventSource.CLOSED) {
+            return;
         }
 
-    </script>
+        try {
+            const logDiv = document.getElementById("log");
+            const outputDiv = document.getElementById("output");
+            window.eventSource = new EventSource("/log_stream");
+
+            window.eventSource.onmessage = function(event) {
+                const lineDiv = document.createElement("div");
+                lineDiv.className = "log-line";
+                lineDiv.textContent = event.data;
+                logDiv.appendChild(lineDiv);
+                requestAnimationFrame(() => {
+                    outputDiv.scrollTop = outputDiv.scrollHeight;
+                });
+            };
+
+            window.eventSource.onerror = function(err) {
+                console.log("日志流断开", err);
+                if (window.eventSource) {
+                    window.eventSource.close();
+                    window.eventSource = null;
+                }
+                showToast("日志流已断开", 2000);
+            };
+        } catch (err) {
+            console.error("无法创建日志连接:", err);
+            showToast("无法连接日志流", 3000);
+        }
+    }
+
+    function runFile() {
+        appendLog("开始执行刷新任务...");
+        fetch("/refresh", { method: "POST" })
+            .then(response => response.text())
+            .then(data => {
+                showToast((data && data.trim()) ? data.trim() : "刷新已启动，请稍等片刻", 3000);
+            })
+            .catch(error => {
+                console.error("刷新启动失败:", error);
+                showToast("刷新启动失败", 3000);
+            });
+        ensureLogStream();
+    }
+
+    function stopFile() {
+        fetch("/stop", { method: "POST" })
+            .then(response => response.text())
+            .then(data => showToast(data || "已发送停止请求", 3000))
+            .catch(() => showToast("停止失败", 3000));
+    }
+
+    function clearLog() {
+        document.getElementById("log").innerHTML = "";
+        showToast("日志已清空", 2600);
+    }
+
+    async function openConfig() {
+        const password = prompt("请输入配置密码：");
+        if (!password) {
+            return;
+        }
+
+        const response = await fetch("/check_config_password", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ password })
+        });
+        const result = await response.json();
+        if (!result.valid) {
+            alert("密码错误，无法打开配置");
+            return;
+        }
+
+        document.getElementById("configModal").style.display = "block";
+        document.getElementById("modalOverlay").style.display = "block";
+
+        fetch("/get_config")
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById("alist_url").value = data.alist_url || "";
+                document.getElementById("alist_apikey").value = data.alist_apikey || "";
+                document.getElementById("alist_password").value = data.alist_password || "";
+
+                document.getElementById("iyuu_token").value = data.iyuu_token || "";
+                document.getElementById("emby_url").value = data.emby_url || "";
+                document.getElementById("library_movie_new").value = data.library_movie_new || "";
+                document.getElementById("library_anime_new").value = data.library_anime_new || "";
+                document.getElementById("library_series").value = data.library_series || "";
+                document.getElementById("api_key").value = data.api_key || "";
+
+                document.getElementById("ai_confidence").value = data.ai_confidence || 0.8;
+                document.getElementById("movies").value = data.movies || "";
+                document.getElementById("series").value = data.series || "";
+                document.getElementById("cron").value = data.cron || "";
+                document.getElementById("chat_api").value = data.chat_api || "";
+
+                document.getElementById("use_library").value = data.use_library || "True";
+                document.getElementById("use_ai_title").value = data.use_ai_title || "True";
+                document.getElementById("is_use_ai").value = data.is_use_ai || "True";
+                document.getElementById("is_use_asyncio").value = data.is_use_asyncio || "True";
+                document.getElementById("restart_update").value = data.restart_update || "True";
+                document.getElementById("use_emby_refresh").value = data.use_emby_refresh || "True";
+                updateAllOptions();
+            });
+    }
+
+    function closeConfig() {
+        document.getElementById("configModal").style.display = "none";
+        document.getElementById("modalOverlay").style.display = "none";
+    }
+
+    function saveConfig() {
+        const data = {
+            alist_url: document.getElementById("alist_url").value,
+            alist_apikey: document.getElementById("alist_apikey").value,
+            alist_password: document.getElementById("alist_password").value,
+
+            ai_confidence: parseFloat(document.getElementById("ai_confidence").value),
+            movies: document.getElementById("movies").value,
+            series: document.getElementById("series").value,
+            cron: document.getElementById("cron").value,
+            use_library: document.getElementById("use_library").value,
+
+            emby_url: document.getElementById("emby_url").value,
+            library_movie_new: document.getElementById("library_movie_new").value,
+            library_anime_new: document.getElementById("library_anime_new").value,
+            library_series: document.getElementById("library_series").value,
+            api_key: document.getElementById("api_key").value,
+            iyuu_token: document.getElementById("iyuu_token").value,
+
+            use_ai_title: document.getElementById("use_ai_title").value,
+            is_use_ai: document.getElementById("is_use_ai").value,
+            is_use_asyncio: document.getElementById("is_use_asyncio").value,
+            restart_update: document.getElementById("restart_update").value,
+            use_emby_refresh: document.getElementById("use_emby_refresh").value,
+
+            chat_api: document.getElementById("chat_api").value
+        };
+
+        fetch("/save_config", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        })
+            .then(res => res.text())
+            .then(msg => {
+                showToast(msg || "配置已保存", 2200);
+                closeConfig();
+            })
+            .catch(err => {
+                console.error(err);
+                showToast("保存失败", 2200);
+            });
+    }
+
+    function loadStats() {
+        fetch("/get_stats")
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById("statsContent").innerHTML = `
+                    电影总数：<b>${data.movies}</b><br>
+                    剧集总数：<b>${data.series_count}</b>
+                `;
+            })
+            .catch(err => {
+                console.error(err);
+                document.getElementById("statsContent").innerText = "统计信息获取失败";
+            });
+    }
+
+    function updateFilesize() {
+        fetch("/get_filesize")
+            .then(res => res.json())
+            .then(data => {
+                const container = document.getElementById("filesize-list");
+                container.innerHTML = "";
+                Object.entries(data).forEach(([name, size]) => {
+                    const sizeText = size === "-" ? "-" : `${size} GB`;
+                    const item = document.createElement("div");
+                    item.className = "size-item";
+
+                    const title = document.createElement("span");
+                    title.className = "size-name";
+                    title.textContent = name;
+
+                    const value = document.createElement("span");
+                    value.className = "size-value";
+                    value.textContent = sizeText;
+
+                    item.appendChild(title);
+                    item.appendChild(value);
+                    container.appendChild(item);
+                });
+            })
+            .catch(err => console.error(err));
+    }
+
+    window.addEventListener("load", () => {
+        loadStats();
+        updateFilesize();
+        setInterval(updateFilesize, 10000);
+        ensureLogStream();
+    });
+</script>
 </body>
 </html>

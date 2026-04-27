@@ -10,13 +10,14 @@
 #             print(f'| WARNING| {s}')
 from datetime import datetime
 config_path = 'config/config.ini'
+log_file_path = '/usr/local/data/实时日志.log'
+log_file_test_path = 'logs/log_test.log'
 # config_path = r'K:\git_code\openlist-rename-strm\config\config_test.ini'
 try:
     from loguru import logger1
 except ImportError:
     class Logger:
-        def __init__(self, log_file='/usr/local/data/实时日志.log'):
-        # def __init__(self, log_file=r'D:\p41plus备份\git_code\openlist-rename-strm\data\实时日志.log'):
+        def __init__(self, log_file=log_file_path):
             self.log_file = log_file
 
         def _write_log(self, level, message):
