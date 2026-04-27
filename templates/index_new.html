@@ -11,17 +11,19 @@
     <style>
         :root {
             --page: #ffffff;
-            --page-soft: #faf8f4;
-            --panel: #ffffff;
-            --panel-soft: #f7f4ef;
-            --border: #e6e0d7;
-            --border-strong: #d9d1c6;
+            --page-soft: rgba(255, 255, 255, 0.56);
+            --panel: rgba(255, 255, 255, 0.52);
+            --panel-soft: rgba(255, 255, 255, 0.62);
+            --border: rgba(210, 202, 190, 0.6);
+            --border-strong: rgba(201, 191, 177, 0.78);
             --text-main: #1f1c18;
             --text-sub: #736b61;
             --accent: #6f7b69;
             --accent-2: #b08568;
             --danger: #a97064;
-            --shadow: 0 18px 38px rgba(42, 32, 24, 0.06);
+            --shadow: 0 18px 38px rgba(42, 32, 24, 0.08);
+            --glass-blur: blur(16px) saturate(145%);
+            --glass-blur-soft: blur(10px) saturate(130%);
         }
 
         * {
@@ -38,10 +40,13 @@
             color: var(--text-main);
             font-family: "Source Sans 3", "Microsoft YaHei UI", sans-serif;
             {% if bg_image %}
-            background-image: url("/static/backgrounds/{{ bg_image }}");
+            background-image:
+                linear-gradient(140deg, rgba(255, 255, 255, 0.24), rgba(252, 246, 236, 0.2) 46%, rgba(241, 249, 255, 0.018)),
+                url("/static/backgrounds/{{ bg_image }}");
             {% else %}
             background-image:
-                linear-gradient(180deg, rgba(246, 242, 236, 0.62), rgba(255, 255, 255, 0) 220px);
+                radial-gradient(circle at 18% 22%, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.82) 36%, rgba(252, 249, 244, 0.82) 64%, rgba(249, 247, 243, 0.9) 100%),
+                linear-gradient(180deg, rgba(248, 244, 237, 0.72), rgba(255, 255, 255, 0.54) 220px, rgba(255, 255, 255, 0.9));
             {% endif %}
             background-color: var(--page);
             background-position: center;
@@ -73,7 +78,7 @@
         .app {
             position: relative;
             z-index: 1;
-            max-width: 1460px;
+            max-width: 1600px;
             margin: 0 auto;
             padding: 34px 24px 28px;
         }
@@ -112,12 +117,14 @@
         .version-pill {
             border: 1px solid var(--border);
             border-radius: 999px;
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.5);
             padding: 8px 14px;
             color: var(--text-sub);
             font-size: 13px;
             white-space: nowrap;
             box-shadow: 0 8px 24px rgba(42, 32, 24, 0.04);
+            backdrop-filter: var(--glass-blur-soft);
+            -webkit-backdrop-filter: var(--glass-blur-soft);
         }
 
         #version-number {
@@ -137,7 +144,7 @@
             border: 1px solid var(--border-strong);
             border-radius: 8px;
             color: var(--text-main);
-            background: var(--panel);
+            background: linear-gradient(150deg, rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.38));
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -147,40 +154,65 @@
             font-size: 14px;
             font-weight: 600;
             transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
-            box-shadow: 0 2px 0 rgba(24, 18, 12, 0.015);
+            box-shadow: 0 4px 12px rgba(32, 23, 16, 0.09), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+            backdrop-filter: var(--glass-blur-soft);
+            -webkit-backdrop-filter: var(--glass-blur-soft);
         }
 
         .btn:hover {
             transform: translateY(-1px);
-            border-color: #d4c9bb;
-            box-shadow: 0 12px 26px rgba(42, 32, 24, 0.06);
+            border-color: rgba(181, 168, 152, 0.9);
+            box-shadow: 0 14px 26px rgba(42, 32, 24, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.65);
         }
 
         .btn:active {
             transform: translateY(0);
         }
 
+<!--        .btn.run {-->
+<!--            background: rgba(111, 123, 105, 0.09);-->
+<!--            border-color: rgba(111, 123, 105, 0.35);-->
+<!--            color: #53604f;-->
+<!--        }-->
+
+<!--        .btn.stop {-->
+<!--            background: rgba(169, 112, 100, 0.08);-->
+<!--            border-color: rgba(169, 112, 100, 0.28);-->
+<!--            color: #8d6458;-->
+<!--        }-->
+
+<!--        .btn.muted {-->
+<!--            background: rgba(141, 132, 122, 0.08);-->
+<!--            border-color: rgba(141, 132, 122, 0.22);-->
+<!--            color: #6f675f;-->
+<!--        }-->
+
+        .btn:hover {
+            border-color: var(--accent); /* 悬停时边框颜色变为深色 */
+            background: var(--page-soft); /* 悬停时稍微变灰一点点 */
+        }
+
         .btn.run {
-            background: rgba(111, 123, 105, 0.09);
-            border-color: rgba(111, 123, 105, 0.35);
-            color: #53604f;
+            background: linear-gradient(150deg, rgba(111, 123, 105, 0.26), rgba(255, 255, 255, 0.34));
+            border-color: rgba(111, 123, 105, 0.42);
+            color: #4c5a47;
         }
 
         .btn.stop {
-            background: rgba(169, 112, 100, 0.08);
-            border-color: rgba(169, 112, 100, 0.28);
-            color: #8d6458;
+            background: linear-gradient(150deg, rgba(169, 112, 100, 0.22), rgba(255, 255, 255, 0.34));
+            border-color: rgba(169, 112, 100, 0.42);
+            color: #845a4f;
         }
 
         .btn.muted {
-            background: rgba(141, 132, 122, 0.08);
-            border-color: rgba(141, 132, 122, 0.22);
-            color: #6f675f;
+            background: linear-gradient(150deg, rgba(141, 132, 122, 0.2), rgba(255, 255, 255, 0.34));
+            border-color: rgba(141, 132, 122, 0.34);
+            color: #665f58;
         }
 
         .layout {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) 320px;
+            grid-template-columns: minmax(0, 1fr) 350px;
             gap: 18px;
             align-items: start;
         }
@@ -190,6 +222,8 @@
             border-radius: 8px;
             background: var(--panel);
             box-shadow: var(--shadow);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
         }
 
         .panel-header {
@@ -225,7 +259,11 @@
             font-size: 13px;
             line-height: 1.68;
             color: var(--text-main);
-            background: linear-gradient(180deg, var(--page-soft), var(--page));
+            background: rgba(255, 255, 255, 0.04);
+            border-top: 1px solid rgba(255, 255, 255, 0.24);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+            backdrop-filter: blur(10px) saturate(130%);
+            -webkit-backdrop-filter: blur(10px) saturate(130%);
         }
 
         #log {
@@ -284,6 +322,8 @@
             gap: 12px;
             font-size: 13px;
             align-items: baseline;
+            backdrop-filter: var(--glass-blur-soft);
+            -webkit-backdrop-filter: var(--glass-blur-soft);
         }
 
         .size-name {
@@ -310,7 +350,7 @@
         .dock-link {
             border: 1px solid var(--border);
             border-radius: 8px;
-            background: rgba(255, 255, 255, 0.96);
+            background: rgba(255, 255, 255, 0.48);
             color: var(--text-sub);
             text-decoration: none;
             padding: 10px 14px;
@@ -321,6 +361,8 @@
             cursor: pointer;
             box-shadow: var(--shadow);
             transition: transform 0.18s ease, box-shadow 0.18s ease;
+            backdrop-filter: var(--glass-blur-soft);
+            -webkit-backdrop-filter: var(--glass-blur-soft);
         }
 
         .dock-link:hover {
@@ -339,7 +381,7 @@
             min-width: 220px;
             max-width: min(88vw, 380px);
             border: 1px solid var(--border);
-            background: rgba(255, 255, 255, 0.98);
+            background: rgba(255, 255, 255, 0.62);
             color: var(--text-main);
             text-align: center;
             border-radius: 8px;
@@ -353,13 +395,15 @@
             opacity: 0;
             transform: translateY(-10px);
             transition: opacity 0.25s ease, transform 0.25s ease;
+            backdrop-filter: var(--glass-blur-soft);
+            -webkit-backdrop-filter: var(--glass-blur-soft);
         }
 
         .modal-overlay {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(249, 246, 241, 0.78);
+            background: rgba(245, 241, 236, 0.5);
             backdrop-filter: blur(6px);
             z-index: 9998;
         }
@@ -374,10 +418,12 @@
             max-height: 86vh;
             border-radius: 8px;
             border: 1px solid var(--border);
-            background: rgba(255, 255, 255, 0.985);
+            background: rgba(255, 255, 255, 0.54);
             box-shadow: 0 24px 54px rgba(42, 32, 24, 0.1);
             z-index: 10000;
             overflow: hidden;
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
         }
 
         .modal-head {
@@ -410,7 +456,9 @@
             display: flex;
             justify-content: flex-end;
             gap: 10px;
-            background: var(--page-soft);
+            background: rgba(255, 255, 255, 0.42);
+            backdrop-filter: var(--glass-blur-soft);
+            -webkit-backdrop-filter: var(--glass-blur-soft);
         }
 
         .config-grid {
@@ -440,13 +488,15 @@
             height: 42px;
             border: 1px solid var(--border);
             border-radius: 8px;
-            background: var(--page-soft);
+            background: rgba(255, 255, 255, 0.38);
             color: var(--text-main);
             padding: 0 12px;
             outline: none;
             font-family: "Source Sans 3", sans-serif;
             font-size: 14px;
             transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+            backdrop-filter: var(--glass-blur-soft);
+            -webkit-backdrop-filter: var(--glass-blur-soft);
         }
 
         .glass-input:focus,
