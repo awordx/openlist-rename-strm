@@ -7,6 +7,8 @@ beta4.9.1（docker拉取：open_alist_strm_rename:beta）
 - 美化前端(如果加入背景图片可能不太好看)
 - 修复bug
 - 更改命名模型为gpt-5-mini
+<img width="2017" height="1069" alt="image" src="https://github.com/user-attachments/assets/6b7aa040-996b-4eb9-a7ac-a76f4c70a881" />
+
 
 v4.9.0(此次更新需要更新config.ini)
 
