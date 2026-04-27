@@ -2,7 +2,7 @@
 ## 使用说明
 最新更新
 
-beta4.9.1（docker拉取：open_alist_strm_rename:beta）
+（网页刷新不太稳定）beta4.9.1（docker拉取：open_alist_strm_rename:beta）
 
 - 美化前端
 - 修复bug
